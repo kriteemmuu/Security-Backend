@@ -14,7 +14,7 @@ const createUser = async (req,res) => {
         // res.send("Please enter all fields!")
         return res.json({
             "success" : false,
-            "message" : "Please enter all fields!"
+            "message" : "Please enter require fields!"
         })
     }
 
