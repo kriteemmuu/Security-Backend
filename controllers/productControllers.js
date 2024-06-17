@@ -57,7 +57,7 @@ const createProduct = async (req, res) => {
         console.log(error);
         res.status(500).json({
             success: false,
-            message: "Internal server error!",
+            message: "Internal server issue!",
             error: error,
         });
     }
