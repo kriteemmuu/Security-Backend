@@ -13,7 +13,7 @@ const createProduct = async (req, res) => {
     if (!productName || !productPrice || !productCategory || !productDescription) {
         return res.status(400).json({
             success: false,
-            message: "Please enter  fields!",
+            message: "Please enter all  fields!",
         });
     }
 
