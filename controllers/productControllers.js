@@ -74,6 +74,65 @@ const createProduct = async (req, res) => {
  
 // Fetch all products
 const getAllProducts = async (req, res) => {
+    try {
+        const allProducts = await ProductModel.find({});
+        res.status(201).json({
+            success: true,
+            message: "Products successfully fetched",
+            products: allProducts,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error,
+        })
+    }
+}
+
+//pagination
+const paginationProducts=async(req,res)=> {
+    // pageno 
+    const pageNo = req.query.page || 1;
+
+    //result per page
+    const resultPerPage=2;
+
+    try{
+        //Find all products,skip,limit
+        const products= await ProductModel.find({}).skip((pageNo-1)*resultPerPage)
+        .limit(resultPerPage)
+
+        //if page 6 is requested, result 0
+        if (products.length===0){
+            return res.status(400).json({
+                "success":false,
+                "message":"No product found"
+            })
+        }
+            res.status(201).json({
+                "success":true,
+                "message":"Product Fetched Successfully",
+                "products":products
+
+        })
+
+    }catch (error){
+        console.log(error)
+        res.status(500).json({
+            "success":false,
+            "message":"Internal Server Error!"
+        })
+    }
+    
+
+}
+
+
+
+
+
   //try catch
   try {
     const allProducts = await productModel.find({});
