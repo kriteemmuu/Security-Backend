@@ -249,11 +249,7 @@ const paginationProducts = async (req, res) => {
 };
  
 module.exports = {
-  createProduct,
-  getAllProducts,
-  getSingleProduct,
-  deleteProduct,
-  updateProduct,
-  paginationProducts,
+    createProduct,
+    getAllProducts,
 };
  

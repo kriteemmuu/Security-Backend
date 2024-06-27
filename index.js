@@ -27,6 +27,8 @@ app.use(express.json());
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 // app.use(morgan("dev"));
+app.use(morgan("dev"));
+
 
 //config formdata
 app.use(acceptFormData());
@@ -44,6 +46,8 @@ app.get("/", (req, res) => {
 app.use("/api/user", require("./routes/userRoutes"));
 
 app.use("/api/product", require("./routes/productRoutes"));
+
+
 
 // http://localhost:3001/api/user/create
 
