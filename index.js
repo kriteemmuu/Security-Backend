@@ -45,9 +45,7 @@ app.use("/api/user", require("./routes/userRoutes"));
 
 app.use("/api/product", require("./routes/productRoutes"));
 
-app.use(express.static("./public"));
-
-// http://localhost:5500/api/user/create
+// http://localhost:3001/api/user/create
 
 // Starting the server
 app.listen(PORT, () => {
