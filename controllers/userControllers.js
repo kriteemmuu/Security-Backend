@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const createUser = async (req, res) => {
   // 2. Destructure the incomming data
   const { firstName, lastName, email, password } = req.body;
-
+  
   // 3. Validate the data (if empty, stop the process and send res)
   if (!firstName || !lastName || !email || !password) {
     // res.send("Please enter all fields!")
@@ -33,7 +33,7 @@ const createUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, randomSalt);
 
     // 5.2 if user is new:
-    const newUser = new userModel({
+    const newUser = new User({
       // Database Fields : Client's Value
       firstName: firstName,
       lastName: lastName,

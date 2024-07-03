@@ -6,7 +6,7 @@ const ProductSchema = new mongoose.Schema({
         required : true
     }, 
     productPrice : {
-        type: Number,
+        type: String,
         required : true
     },
     productCategory : {
@@ -26,6 +26,7 @@ const ProductSchema = new mongoose.Schema({
     },
     createdAt:{
         type:Date,
+        required:true,
         default: Date.now()
     }    
         

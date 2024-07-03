@@ -17,15 +17,16 @@ const app = express();
 // Configure Cors Policy
 
 const corsOptions = {
-  origin: "http://localhost:3000", // Replace with your client-side origin
+  origin: true, // Replace with your client-side origin
   credentials: true, // Enable sending cookies with CORS
+  optionSuccessStatus: 201
 };
 
 // Express Json Config
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan("dev"));
+// app.use(morgan("dev"));
 
 //config formdata
 app.use(acceptFormData());
@@ -43,6 +44,8 @@ app.get("/", (req, res) => {
 app.use("/api/user", require("./routes/userRoutes"));
 
 app.use("/api/product", require("./routes/productRoutes"));
+
+app.use(express.static("./public"));
 
 // http://localhost:5500/api/user/create
 
