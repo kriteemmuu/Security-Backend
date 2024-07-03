@@ -29,6 +29,8 @@ app.use(express.urlencoded({ extended: true }));
 // app.use(morgan("dev"));
 app.use(morgan("dev"));
 
+app.use(express.static("./public"))
+
 
 //config formdata
 app.use(acceptFormData());
@@ -56,4 +58,5 @@ app.listen(PORT, () => {
   console.log(
     `Server is Running on port: http://localhost:${PORT}`.cyan.underline.bold
   );
-});
+})
+module.exports=app;

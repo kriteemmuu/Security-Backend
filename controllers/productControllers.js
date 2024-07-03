@@ -87,7 +87,7 @@ const paginationProducts=async(req,res)=> {
     const pageNo = req.query.page || 1;
 
     //result per page
-    const resultPerPage=2;
+    const resultPerPage=5;
 
     try{
         //Find all products,skip,limit
