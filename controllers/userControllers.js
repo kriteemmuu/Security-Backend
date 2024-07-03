@@ -4,15 +4,10 @@ const jwt = require("jsonwebtoken");
 
 const createUser = async (req, res) => {
   // 2. Destructure the incomming data
-<<<<<<< HEAD
   const { firstName, lastName, email, password } = req.body;
   
-=======
-  const { firstName, lastName,phone, email, password } = req.body;
-
->>>>>>> 9637847 (changes)
   // 3. Validate the data (if empty, stop the process and send res)
-  if (!firstName || !lastName || !phone || !email || !password) {
+  if (!firstName || !lastName || !email || !password) {
     // res.send("Please enter all fields!")
     return res.json({
       success: false,
@@ -42,7 +37,6 @@ const createUser = async (req, res) => {
       // Database Fields : Client's Value
       firstName: firstName,
       lastName: lastName,
-      phone: phone,
       email: email,
       password: hashedPassword,
     });
