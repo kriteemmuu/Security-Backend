@@ -36,7 +36,7 @@ app.use(express.static("./public"))
 app.use(acceptFormData());
 
 // Defining the port
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3001;
 
 // Making a test endpoint
 // Endpoints : POST, GET, PUT, DELETE
@@ -60,3 +60,4 @@ app.listen(PORT, () => {
   );
 })
 module.exports=app;
+
