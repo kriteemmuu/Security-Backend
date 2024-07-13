@@ -1,31 +1,23 @@
 const path = require("path");
 const productModel = require("../models/productModel");
-const Product = require("../models/productModel");
 const fs = require("fs");
 
 const createProduct = async (req, res) => {
-  //check incoming data
-  console.log(req.body);
-  console.log(req.files);
-
-  //destructuring the body data (json)
-  const { productName, productPrice, productCategory, productDescription,  } =
+  const { productName, productPrice, productCategory, productDescription } =
     req.body;
 
-  //Validation (task)c
   if (
     !productName ||
     !productPrice ||
     !productCategory ||
-    !productDescription 
-    
+    !productDescription
   ) {
     return res.status(400).json({
       success: false,
       message: "Please enter all fields",
     });
   }
-  //validate if there is image
+
   if (!req.files || !req.files.productImage) {
     return res.status(400).json({
       success: false,
@@ -34,29 +26,29 @@ const createProduct = async (req, res) => {
   }
 
   const { productImage } = req.files;
-
-  //upload image
-  // 1. Generate new image name (abc.png) -> (21324-abc.png)
   const imageName = `${Date.now()}-${productImage.name}`;
-
-  // 2. Make a upload path(/path/upload- directory)
   const imageUploadPath = path.join(
     __dirname,
     `../public/products/${imageName}`
   );
 
-  // 3. Move to that directory (await, try-catch)
   try {
+    // Check if the directory exists, if not, create it
+    const directoryPath = path.join(__dirname, "../public/products");
+    if (!fs.existsSync(directoryPath)) {
+      fs.mkdirSync(directoryPath, { recursive: true });
+    }
+
     await productImage.mv(imageUploadPath);
 
-    // save to database
     const newProduct = new productModel({
-      productName: productName,
-      productPrice: productPrice,
-      productCategory: productCategory,
-      productDescription: productDescription,
+      productName,
+      productPrice,
+      productCategory,
+      productDescription,
       productImage: imageName,
     });
+
     const product = await newProduct.save();
     res.status(201).json({
       success: true,
@@ -73,7 +65,47 @@ const createProduct = async (req, res) => {
   }
 };
 
-// Fetch all products
+//allProductsForHome
+const viewAllProducts = async (req, res, next) => {
+  try {
+    const products = await productModel.find();
+    res.status(200).json({
+      success: true,
+      message: "all products found",
+      data: products,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+//singleProductDetails
+const viewSingleProductDetails = async (req, res, next) => {
+  try {
+    const product = await productModel.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "product not found",
+        data: product,
+      });
+    }
+    res.status(200).json({
+      success: true,
+      message: "product not found",
+      data: product,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+// Fetch all products(By Admin)
 const getAllProducts = async (req, res) => {
   //try catch
   try {
@@ -95,19 +127,18 @@ const getAllProducts = async (req, res) => {
 
 // fetch single products
 const getSingleProduct = async (req, res) => {
-  // get product id from url (params)
   const productId = req.params.id;
 
   //find
   try {
-    const product = await Product.findById(productId);
+    const product = await productModel.findById(productId);
     if (!product) {
       res.status(400).json({
         success: false,
         message: "No Product Found",
       });
     }
-    res.status(201).json({
+    res.status(200).json({
       success: true,
       message: "Product fetched",
       product: product,
@@ -222,7 +253,8 @@ const paginationProducts = async (req, res) => {
 
   try {
     // find all products, skip, limit
-    const products = await Product.find({})
+    const products = await productModel
+      .find({})
       .skip((pageNo - 1) * resultPerPage)
       .limit(resultPerPage);
 
@@ -265,7 +297,6 @@ const getProductsCount = async (req, res) => {
   }
 };
 
-
 module.exports = {
   createProduct,
   getAllProducts,
@@ -274,4 +305,6 @@ module.exports = {
   updateProduct,
   paginationProducts,
   getProductsCount,
+  viewAllProducts,
+  viewSingleProductDetails,
 };

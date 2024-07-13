@@ -4,10 +4,10 @@ const jwt = require("jsonwebtoken");
 
 const createUser = async (req, res) => {
   // 2. Destructure the incomming data
-  const { firstName, lastName, email, password } = req.body;
-  
+  const { firstName, lastName, email, password, phone } = req.body;
+
   // 3. Validate the data (if empty, stop the process and send res)
-  if (!firstName || !lastName || !email || !password) {
+  if (!firstName || !lastName || !email || !password || !phone) {
     // res.send("Please enter all fields!")
     return res.json({
       success: false,
@@ -15,7 +15,6 @@ const createUser = async (req, res) => {
     });
   }
 
-  // 4. Error Handling (Try Catch)
   try {
     // 5. Check if the user is already registered
     const existingUser = await User.findOne({ email: email });
@@ -38,6 +37,7 @@ const createUser = async (req, res) => {
       firstName: firstName,
       lastName: lastName,
       email: email,
+      phone: phone,
       password: hashedPassword,
     });
 
@@ -50,7 +50,6 @@ const createUser = async (req, res) => {
       message: "User Created Successfully!",
     });
   } catch (error) {
-    console.log(error);
     res.json({
       success: false,
       message: "Internal Server Error!",
