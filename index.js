@@ -6,6 +6,7 @@ const cors = require("cors");
 const acceptFormData = require("express-fileupload");
 const colors = require("colors");
 const morgan = require("morgan");
+const reviewRoutes=require("./routes/reviewRoutes");
 
 // dotenv Configuration
 dotenv.config();
@@ -48,6 +49,8 @@ app.get("/", (req, res) => {
 app.use("/api/user", require("./routes/userRoutes"));
 
 app.use("/api/product", require("./routes/productRoutes"));
+
+app.use("/api/review", require("./routes/reviewRoutes"));
 
 
 
