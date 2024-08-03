@@ -1,42 +1,3 @@
-// const mongoose = require('mongoose')
-
-// const ProductSchema = new mongoose.Schema({
-//     productName : {
-//         type: String,
-//         required : true
-//     }, 
-//     productPrice : {
-//         type: String,
-//         required : true
-//     },
-//     productCategory : {
-//         type: String,
-//         required : true,
-        
-//     },
-//     productDescription : {
-//         type: String,
-//         required : true,
-//         maxLength:300
-
-//     },
-//     productImage: {
-//         type: String,
-//         required : true,
-//     },
-//     createdAt:{
-//         type:Date,
-//         required:true,
-//         default: Date.now()
-//     }    
-        
-
-// })
-
-// const Product= mongoose.model('product', ProductSchema)
-// module.exports = Product;
-
-
 // Importing mongoose package
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
@@ -62,6 +23,40 @@ const productSchema = new mongoose.Schema({
   },
   productImage: {
     type: String,
+    required: true,
+  },
+  numOfReviews: {
+    type: Number,
+    default: 0,
+  },
+  reviews: [
+    {
+      user: {
+        type: mongoose.Schema.ObjectId,
+        ref: "user",
+        required: true,
+      },
+      firstName: {
+        type: String,
+        required: true,
+      },
+        lastName: {
+        type: String,
+        required: true,
+      },
+      rating: {
+        type: Number,
+        required: true,
+      },
+      comment: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
+  user: {
+    type: mongoose.Schema.ObjectId,
+    ref: "user",
     required: true,
   },
   createdAt: {

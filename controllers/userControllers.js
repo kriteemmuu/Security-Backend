@@ -1,6 +1,8 @@
 const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs");
 
 const createUser = async (req, res) => {
   // 2. Destructure the incomming data
@@ -131,22 +133,59 @@ const getUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   const { firstName, lastName, email } = req.body;
+
   try {
+    // Fetch user by ID
     const user = await User.findById(req.user._id);
     if (!user) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
         message: "User not found!",
       });
     }
 
+    // Check if avatar file is uploaded
+    if (!req.files || !req.files.avatar) {
+      return res.status(400).json({
+        success: false,
+        message: "Avatar image not found",
+      });
+    }
+
+    // Define avatar image details
+    const { avatar } = req.files;
+    const imageName = `${Date.now()}-${avatar.name}`;
+    const directoryPath = path.join(__dirname, "../public/profile");
+
+    // Ensure directory exists
+    if (!fs.existsSync(directoryPath)) {
+      fs.mkdirSync(directoryPath, { recursive: true });
+    }
+
+    // Define full image upload path
+    const imageUploadPath = path.join(directoryPath, imageName);
+
+    // Delete the old avatar if it exists
+    if (user.avatar) {
+      const oldImagePath = path.join(directoryPath, user.avatar);
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+
+    // Move the uploaded avatar to the designated path
+    await avatar.mv(imageUploadPath);
+
+    // Update user details
     user.firstName = firstName || user.firstName;
     user.lastName = lastName || user.lastName;
     user.email = email || user.email;
+    user.avatar = imageName;
 
+    // Save updated user
     await user.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "User updated successfully!",
       user,
@@ -159,6 +198,8 @@ const updateUser = async (req, res) => {
     });
   }
 };
+
+module.exports = updateUser;
 
 const changePassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
@@ -200,6 +241,29 @@ const changePassword = async (req, res) => {
   }
 };
 
+//find All Users(By Admin)
+const AllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    if (!users) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      users,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error!",
+    });
+  }
+};
+
 // exporting
 module.exports = {
   createUser,
@@ -207,4 +271,5 @@ module.exports = {
   getUser,
   updateUser,
   changePassword,
+  AllUsers,
 };
