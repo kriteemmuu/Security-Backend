@@ -199,8 +199,6 @@ const updateUser = async (req, res) => {
   }
 };
 
-module.exports = updateUser;
-
 const changePassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
@@ -264,6 +262,30 @@ const AllUsers = async (req, res) => {
   }
 };
 
+//findById
+const singleUserByAdmin = async (req, res) => {
+  try {
+    const product = await User.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "product not found!",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "product get successFully!",
+      product,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error!",
+    });
+  }
+};
+
 // exporting
 module.exports = {
   createUser,
@@ -272,4 +294,5 @@ module.exports = {
   updateUser,
   changePassword,
   AllUsers,
+  singleUserByAdmin,
 };

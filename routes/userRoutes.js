@@ -11,6 +11,12 @@ router.get("/me", auth, userController.getUser);
 router.put("/update", auth, userController.updateUser);
 router.put("/change-password", auth, userController.changePassword);
 router.get("/all-adminUsers", auth, authAdmin, userController.AllUsers);
+router.get(
+  "/single-user/:id",
+  auth,
+  authAdmin,
+  userController.singleUserByAdmin
+);
 
 // controller (Export) - Routes (inport) - use - (index.js)
 
