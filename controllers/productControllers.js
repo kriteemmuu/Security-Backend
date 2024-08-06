@@ -3,8 +3,15 @@ const productModel = require("../models/productModel");
 const fs = require("fs");
 
 const createProduct = async (req, res) => {
-  const { productName, productPrice, productCategory, productDescription } =
-    req.body;
+  const {
+    productName,
+    productPrice,
+    productCategory,
+    productDescription,
+    ratings,
+    inStock,
+    user,
+  } = req.body;
 
   if (
     !productName ||
@@ -46,7 +53,10 @@ const createProduct = async (req, res) => {
       productPrice,
       productCategory,
       productDescription,
+      ratings,
+      inStock,
       productImage: imageName,
+      user: user || null,
     });
 
     const product = await newProduct.save();
@@ -345,6 +355,7 @@ const createProductReview = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "review submit successfully!",
+      product,
     });
   } catch (error) {
     return res.status(500).json({

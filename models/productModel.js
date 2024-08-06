@@ -1,6 +1,5 @@
 // Importing mongoose package
 const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
 
 // Creating a schema
 const productSchema = new mongoose.Schema({
@@ -21,6 +20,14 @@ const productSchema = new mongoose.Schema({
     required: true,
     maxLength: 700,
   },
+  ratings: {
+    type: Number,
+    default: 0,
+  },
+  inStock: {
+    type: Number,
+    default: 0,
+  },
   productImage: {
     type: String,
     required: true,
@@ -40,7 +47,7 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-        lastName: {
+      lastName: {
         type: String,
         required: true,
       },
@@ -57,7 +64,7 @@ const productSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.ObjectId,
     ref: "user",
-    required: true,
+    required: false,
   },
   createdAt: {
     type: Date,

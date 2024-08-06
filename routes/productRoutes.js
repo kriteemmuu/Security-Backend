@@ -10,6 +10,7 @@ const {
   viewAllProducts,
   viewSingleProductDetails,
   createProductReview,
+  getProductReviews,
 } = require("../controllers/productControllers");
 const { auth } = require("../middleware/auth");
 
@@ -26,5 +27,6 @@ router.get("/pagination", paginationProducts);
 router.get("/count", getProductsCount);
 //add update reviews product
 router.route("/add/reviews").put(auth, createProductReview);
+router.get("/getReviews", getProductReviews);
 
 module.exports = router;
