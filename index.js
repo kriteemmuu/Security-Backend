@@ -6,7 +6,7 @@ const cors = require("cors");
 const acceptFormData = require("express-fileupload");
 const colors = require("colors");
 const morgan = require("morgan");
-const reviewRoutes=require("./routes/reviewRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 
 // dotenv Configuration
 dotenv.config();
@@ -20,7 +20,7 @@ const app = express();
 const corsOptions = {
   origin: true, // Replace with your client-side origin
   credentials: true, // Enable sending cookies with CORS
-  optionSuccessStatus: 201
+  optionSuccessStatus: 201,
 };
 
 // Express Json Config
@@ -30,8 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 // app.use(morgan("dev"));
 app.use(morgan("dev"));
 
-app.use(express.static("./public"))
-
+app.use(express.static("./public"));
 
 //config formdata
 app.use(acceptFormData());
@@ -51,8 +50,8 @@ app.use("/api/user", require("./routes/userRoutes"));
 app.use("/api/product", require("./routes/productRoutes"));
 
 app.use("/api/review", require("./routes/reviewRoutes"));
-
-
+//orderRoute
+app.use("/api/order", require("./routes/orderRoutes"));
 
 // http://localhost:3001/api/user/create
 
@@ -61,6 +60,5 @@ app.listen(PORT, () => {
   console.log(
     `Server is Running on port: http://localhost:${PORT}`.cyan.underline.bold
   );
-})
-module.exports=app;
-
+});
+module.exports = app;

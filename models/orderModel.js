@@ -8,13 +8,13 @@ const orderSchema = new mongoose.Schema({
     city: {
       type: String,
     },
-    state: {
+    province: {
       type: String,
     },
     country: {
       type: String,
     },
-    pinCode: {
+    postalCode: {
       type: Number,
     },
     phoneNo: {
@@ -33,12 +33,7 @@ const orderSchema = new mongoose.Schema({
         type: Number,
       },
       productImg: {
-        public_id: {
-          type: String,
-        },
-        url: {
-          type: String,
-        },
+        type: String,
       },
       product: {
         type: mongoose.Schema.ObjectId,
@@ -51,16 +46,9 @@ const orderSchema = new mongoose.Schema({
     ref: "user",
   },
   paymentInfo: {
-    id: {
-      type: String,
-    },
-    status: {
-      type: String,
-    },
+    type: String,
   },
-  paidAt: {
-    type: Date,
-  },
+
   itemsPrice: {
     type: Number,
 
@@ -68,24 +56,21 @@ const orderSchema = new mongoose.Schema({
   },
   taxPrice: {
     type: Number,
-
     default: 0,
   },
   shippingPrice: {
     type: Number,
-
     default: 0,
   },
   totalPrice: {
     type: Number,
-
     default: 0,
   },
   orderStatus: {
     type: String,
     default: "processing",
   },
-  deliveredAt: Date,
+
   createdAt: {
     type: Date,
     default: Date.now(),
