@@ -31,11 +31,11 @@ exports.newOrder = async (req, res, next) => {
   });
 };
 
-//get single orders
+//get single orders of Logged Users
 exports.getSingleOrder = async (req, res, next) => {
   const order = await Order.findById(req.params.id).populate(
     "user",
-    "fullName email"
+    "firstName lastName email"
   );
 
   if (!order)
@@ -62,7 +62,7 @@ exports.myOrders = async (req, res, next) => {
 
 //get all orders by admin
 exports.getAllOrders = async (req, res, next) => {
-  const orders = await Order.find().populate("user", "fullName");
+  const orders = await Order.find().populate("user", "firstName lastName");
 
   let totalAmount = 0;
   orders.forEach((order) => {
@@ -124,13 +124,12 @@ exports.updateOrder = async (req, res, next) => {
 };
 
 async function updateStock(id, quantity) {
-  console.log("Product ID:", id);
   const product = await Product.findById(id);
-  console.log("Product:", product);
+
   if (!product) {
     throw new ErrorHandler("Product not found with this Id", 404);
   }
-  product.IsInStock -= quantity;
+  product.inStock -= quantity;
 
   await product.save({ validateBeforeSave: false });
 }
@@ -148,5 +147,24 @@ exports.deleteOrder = async (req, res, next) => {
   res.status(200).json({
     success: true,
     message: "order delete successfully!",
+  });
+};
+
+//get Single Orders By admin
+exports.getSingleOrderByAdmin = async (req, res, next) => {
+  const order = await Order.findById(req.params.id).populate(
+    "user",
+    "firstName lastName email"
+  );
+
+  if (!order)
+    return res.status(404).json({
+      success: false,
+      message: "Order not found!",
+    });
+
+  res.status(200).json({
+    success: true,
+    data: order,
   });
 };
