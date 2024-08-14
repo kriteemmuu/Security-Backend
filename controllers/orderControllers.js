@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Order = require("../models/orderModel");
 const Product = require("../models/productModel");
+const User = require("../models/userModel");
 
 //create new Order
 exports.newOrder = async (req, res, next) => {
@@ -78,49 +79,51 @@ exports.getAllOrders = async (req, res, next) => {
 //update Order status by admin
 
 exports.updateOrder = async (req, res, next) => {
-  const order = await Order.findById(req.params.id);
+  try {
+    const order = await Order.findById(req.params.id);
 
-  if (!order) {
-    return res.status(404).json({
-      success: false,
-      message: "OrderId not found!",
-    });
-  }
-
-  if (order.orderStatus === "Delivered") {
-    return res.status(400).json({
-      success: false,
-      message: "Your order has been already placed!",
-    });
-  }
-  if (req.body.status === "Shipped") {
-    order.orderItems.forEach(async (o) => {
-      if (o.product) {
-        await updateStock(o.product, o.quantity);
-      }
-    });
-  }
-
-  order.orderStatus = req.body.status;
-
-  if (req.body.status === "Delivered") {
-    order.deliveredAt = Date.now();
-  }
-
-  await order.save({ validateBeforeSave: false }, (err) => {
-    if (err) {
-      return res.status(500).json({
+    if (!order) {
+      return res.status(404).json({
         success: false,
-        message: "Error updating order status",
+        message: "OrderId not found!",
       });
     }
+
+    if (order.orderStatus === "Delivered") {
+      return res.status(400).json({
+        success: false,
+        message: "Your order has been already placed!",
+      });
+    }
+
+    if (req.body.status === "Shipped") {
+      for (let o of order.orderItems) {
+        if (o.product) {
+          await updateStock(o.product, o.quantity);
+        }
+      }
+    }
+
     order.orderStatus = req.body.status;
+
+    if (req.body.status === "Delivered") {
+      order.deliveredAt = Date.now();
+    }
+
+    await order.save({ validateBeforeSave: false });
+
     res.status(200).json({
       success: true,
       message: "Order status updated successfully!",
       data: order,
     });
-  });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating order status",
+      error: error.message,
+    });
+  }
 };
 
 async function updateStock(id, quantity) {
@@ -167,4 +170,48 @@ exports.getSingleOrderByAdmin = async (req, res, next) => {
     success: true,
     data: order,
   });
+};
+
+//calculate all Modal Stats
+
+exports.getAllStats = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    const totalOrders = await Order.countDocuments();
+    const totalProducts = await Product.countDocuments();
+
+    const totalIncome = await Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalIncome: { $sum: "$totalPrice" },
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        totalUsers,
+        totalOrders,
+        totalProducts,
+        totalIncome: totalIncome.length > 0 ? totalIncome[0].totalIncome : 0,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+exports.khaltiVerify = async (req, res) => {
+  try {
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
