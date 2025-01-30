@@ -181,56 +181,80 @@ const resendOTP = async (req, res, next) => {
 };
 
 // Login credentials
-const loginCredentials = async (req, res, next) => {
+const loginCredentials = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: "Please enter email and password!",
-    });
+    return res
+      .status(400)
+      .json({ success: false, message: "Please enter email and password!" });
   }
 
   const user = await User.findOne({ email }).select("+password");
+
   if (!user) {
-    return res.status(404).json({
+    return res
+      .status(404)
+      .json({ success: false, message: "User doesn't exist!" });
+  }
+
+  // Check if the user is locked
+  if (user.lockUntil && user.lockUntil > Date.now()) {
+    return res.status(403).json({
       success: false,
-      message: "user doesn't exist!",
+      message:
+        "Account locked due to multiple failed login attempts. Try again after 24 hours.",
     });
   }
 
+  // Verify email if needed
   if (!user.verified) {
     try {
       await sendOTP(user);
-
-      return res.status(201).json({
-        success: true,
-        message: "OTP sent to email, verify account",
-      });
+      return res
+        .status(201)
+        .json({ success: true, message: "OTP sent to email, verify account" });
     } catch (error) {
-      return res.status(500).json({
-        success: false,
-        message: "Internal Server Error!",
-      });
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal Server Error!" });
     }
   }
 
+  // Check password
   const isPasswordMatched = await user.comparePassword(password);
+
   if (!isPasswordMatched) {
-    return res.status(400).json({
-      success: false,
-      message: "Invalid credentials!",
-    });
+    user.failedLoginAttempts += 1;
+
+    // Lock account if attempts exceed 5
+    if (user.failedLoginAttempts >= 5) {
+      user.lockUntil = new Date(Date.now() + 24 * 60 * 60 * 1000); // for 24 hours 1 day lock ho hai
+      await user.save();
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "Too many failed attempts. Account locked for 24 hours.",
+        });
+    }
+
+    await user.save();
+    return res
+      .status(400)
+      .json({ success: false, message: "Invalid credentials!" });
   }
+
+  // Reset failed attempts on successful login
+  user.failedLoginAttempts = 0;
+  user.lockUntil = null;
+  await user.save();
 
   const token = user.getJwtToken();
 
-  res.status(200).json({
-    success: true,
-    message: "Login successfully!",
-    data: user,
-    token,
-  });
+  res
+    .status(200)
+    .json({ success: true, message: "Login successful!", data: user, token });
 };
 
 const getUser = async (req, res) => {

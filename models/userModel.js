@@ -7,28 +7,36 @@ const userSchema = new mongoose.Schema(
     firstName: {
       type: String,
       required: true,
+      trim: true,
     },
     lastName: {
       type: String,
       required: true,
+      trim: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      lowercase: true,
+      index: true, 
     },
     phone: {
-      type: Number,
+      type: String, 
       required: true,
+      unique: true,
+      trim: true,
     },
     password: {
       type: String,
-      required: [true, "Please Enter a password"],
-      minlength: [8, "password must be 8 characters long"],
+      required: [true, "Please enter a password"],
+      minlength: [8, "Password must be at least 8 characters long"],
       select: false,
     },
     avatar: {
       type: String,
+      default: "", 
     },
     role: {
       type: String,
@@ -39,44 +47,82 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-
     isActive: {
       type: Boolean,
-      default: false,
+      default: true,
     },
+
+    // Password Reset & OTP
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-    otp: Number,
+    otp: {
+      type: String, 
+      select: false,
+    },
     otp_expiry: Date,
-    resetPasswordOtp: Number,
+    resetPasswordOtp: {
+      type: String,
+      select: false,
+    },
     resetPasswordOtpExpiry: Date,
+
+    
+    failedLoginAttempts: {
+      type: Number,
+      default: 0,
+    },
+    lockUntil: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-//hashed Password
+// **Hash Password Before Saving**
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
-    next();
-  }
+  if (!this.isModified("password")) return next();
 
-  const salt = await bcrypt.genSalt(10);
+  const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
+  next();
 });
 
-//generate Token
+// **Generate JWT Token**
 userSchema.methods.getJwtToken = function () {
   return jwt.sign({ id: this.id }, process.env.JWT_SECRET, {
     expiresIn: "8h",
   });
 };
 
-//Compare Password
+// **Compare Passwords**
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const User = mongoose.model("user", userSchema);
+// **Check if Account is Locked**
+userSchema.methods.isAccountLocked = function () {
+  return this.lockUntil && this.lockUntil > Date.now();
+};
+
+// **Increment Failed Login Attempts**
+userSchema.methods.incrementFailedLoginAttempts = async function () {
+  this.failedLoginAttempts += 1;
+  if (this.failedLoginAttempts >= 5) {
+    this.lockUntil = new Date(Date.now() + 24 * 60 * 60 * 1000); 
+  }
+  await this.save();
+};
+
+// **Reset Failed Login Attempts**
+userSchema.methods.resetFailedLoginAttempts = async function () {
+  this.failedLoginAttempts = 0;
+  this.lockUntil = null;
+  await this.save();
+};
+
+const User = mongoose.model("User", userSchema);
+
 module.exports = User;
