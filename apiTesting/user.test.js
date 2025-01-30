@@ -57,7 +57,7 @@ describe("User Schema Test Suite", () => {
   //   expect(updatedUser.lastName).toEqual("KC");
   //   expect(updatedUser.email).toEqual("kritimuu456@gmail.com");
   //   expect(updatedUser.phone.toString()).toEqual("9861315260");
-  //   expect(updatedUser.password).toEqual("KriTimaHeroine");
+  //   expect(updatedUser.password).toEqual("KriTima");
   // });
 
   //delete

@@ -1,166 +1,122 @@
-// Imporing the packages (express)
+// Import required packages
 const express = require("express");
 const connectDatabase = require("./database/database");
 const dotenv = require("dotenv");
 const cors = require("cors");
-const acceptFormData = require("express-fileupload");
+const fileUpload = require("express-fileupload");
 const colors = require("colors");
 const morgan = require("morgan");
-const reviewRoutes = require("./routes/reviewRoutes");
-const request = require("request");
 const axios = require("axios");
+const fs = require("fs").promises; 
+const https = require("https");
+const path = require("path");
+const activityLogger = require("./middleware/acitivityLogger");
 
-// dotenv Configuration
+// Load environment variables
 dotenv.config();
-// Connecting to database
+
+// Connect to the database
 connectDatabase();
-// Creating an express app
+
+// Create an express app
 const app = express();
 
-// Configure Cors Policy
-
-const corsOptions = {
-  origin: "http://localhost:3000",
-  credentials: true,
-  optionsSuccessStatus: 201,
-};
-
-// Use the cors middleware with the specified options
-
-// Express Json Config
+// Configure CORS policy
+app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
 app.use(express.json());
-app.use(cors(corsOptions));
-
 app.use(express.urlencoded({ extended: true }));
-// app.use(morgan("dev"));
-app.use(morgan("dev"));
+app.use(express.static("public"));
+app.use(fileUpload());
+app.use(activityLogger);
 
-app.use(express.static("./public"));
-
-//config formdata
-app.use(acceptFormData());
-
-// Defining the port
+// Define the port
 const PORT = process.env.PORT || 3001;
 
-// Making a test endpoint
-// Endpoints : POST, GET, PUT, DELETE
+// Test endpoint
+app.get("/", (req, res) => res.send("<h1>Server is Working...</h1>"));
 
-//server is working or not
-app.get("/", (req, res) => {
-  res.send("<h1>Server is Working...</h1>");
-});
-
-//Khalti integration
-app.post("/khalti-pay", (req, res) => {
-  const payload = req.body;
-
-  const options = {
-    method: "POST",
-    url: "https://a.khalti.com/api/v2/epayment/initiate/",
-    headers: {
-      Authorization: "Key live_secret_key_68791341fdd94846a146f0457ff7b455",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  };
-
-  request(options, (error, response, body) => {
-    if (error) {
-      return res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    if (response.statusCode !== 200) {
-      return res.status(response.statusCode).json({
-        success: false,
-        message: `Khalti payment initiation failed: ${body}`,
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      data: JSON.parse(body),
-    });
-  });
-});
-
-app.get("/payment-success", async (req, res) => {
-  const { pidx } = req.query;
-
+// Khalti integration: Optimized using axios
+app.post("/khalti-pay", async (req, res) => {
   try {
-    const lookupResponse = await axios.post(
-      "https://a.khalti.com/api/v2/epayment/lookup/",
-      { pidx },
+    const { data } = await axios.post(
+      "https://a.khalti.com/api/v2/epayment/initiate/",
+      req.body,
       {
         headers: {
-          Authorization: "Key live_secret_key_68791341fdd94846a146f0457ff7b455",
+          Authorization: `Key ${process.env.KHALTI_SECRET_KEY}`,
           "Content-Type": "application/json",
         },
       }
     );
 
-    const paymentStatus = lookupResponse.data.status;
-
-    if (paymentStatus === "Completed") {
-      return res.status(200).json({ success: true, status: paymentStatus });
-    } else if (paymentStatus === "Pending") {
-      return res.status(202).json({
-        success: false,
-        status: paymentStatus,
-        message: "Payment is pending. Please wait.",
-      });
-    } else if (paymentStatus === "Failed") {
-      return res.status(400).json({
-        success: false,
-        status: paymentStatus,
-        message: "Payment failed. Please try again.",
-      });
-    } else {
-      return res.status(400).json({
-        success: false,
-        status: paymentStatus,
-        message: `Unknown payment status: ${paymentStatus}`,
-      });
-    }
+    return res.status(200).json({ success: true, data });
   } catch (error) {
-    if (error.response) {
-      return res.status(error.response.status).json({
-        success: false,
-        message: `Khalti payment lookup failed: ${JSON.stringify(
-          error.response.data
-        )}`,
-      });
-    } else if (error.request) {
-      return res.status(500).json({
-        success: false,
-        message: "No response from Khalti server.",
-      });
-    } else {
-      return res.status(500).json({
-        success: false,
-        message: `Error: ${error.message}`,
-      });
-    }
+    return res.status(error.response?.status || 500).json({
+      success: false,
+      message: error.response?.data || "Khalti payment initiation failed.",
+    });
   }
 });
 
+// Khalti payment status lookup
+app.get("/payment-success", async (req, res) => {
+  try {
+    const { data } = await axios.post(
+      "https://a.khalti.com/api/v2/epayment/lookup/",
+      { pidx: req.query.pidx },
+      {
+        headers: {
+          Authorization: `Key ${process.env.KHALTI_SECRET_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return res.status(
+      data.status === "Completed" ? 200 : data.status === "Pending" ? 202 : 400
+    ).json({
+      success: data.status === "Completed",
+      status: data.status,
+      message:
+        data.status === "Completed"
+          ? "Payment successful."
+          : data.status === "Pending"
+          ? "Payment is pending."
+          : "Payment failed.",
+    });
+  } catch (error) {
+    return res.status(error.response?.status || 500).json({
+      success: false,
+      message: error.response?.data || "Failed to fetch payment status.",
+    });
+  }
+});
+
+// API routes
 app.use("/api/user", require("./routes/userRoutes"));
-
 app.use("/api/product", require("./routes/productRoutes"));
-
 app.use("/api/review", require("./routes/reviewRoutes"));
-//orderRoute
 app.use("/api/order", require("./routes/orderRoutes"));
 
-// http://localhost:3001/api/user/create
+// Create HTTPS server with async SSL certificate loading
+(async () => {
+  try {
+    const options = {
+      key: await fs.readFile(path.join(__dirname, "server.key")),
+      cert: await fs.readFile(path.join(__dirname, "server.crt")),
+      requestCert: false,
+      rejectUnauthorized: false,
+    };
 
-// Starting the server
-app.listen(PORT, () => {
-  console.log(
-    `Server is Running on port: http://localhost:${PORT}`.cyan.underline.bold
-  );
-});
+    https.createServer(options, app).listen(PORT, () => {
+      console.log(
+        `✅ Server is Running at: https://localhost:${PORT}`.cyan.bold
+      );
+    });
+  } catch (error) {
+    console.error("❌ Failed to load SSL certificates:", error);
+  }
+})();
+
+// Export app for testing
 module.exports = app;
