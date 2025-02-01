@@ -93,7 +93,7 @@ const verifyAccount = async (req, res, next) => {
       });
     }
 
-    const user = await User.findOne({ id: userId });
+    const user = await User.findOne({_id: userId });
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -447,3 +447,142 @@ module.exports = {
   AllUsers,
   singleUserByAdmin,
 };
+
+
+
+// exports.updateUser = tryCatchAsyncError(async (req, res, next) => {
+ 
+//   const user = await User.findById(req.user.id);
+//   if (!user) {
+//     return next(new ErrorHandler("User not found!", 404));
+//   }
+
+//   const { name, address, gender, dob } = req.body;
+
+//   const updatedData = { name, address, gender, dob };
+
+//   if (req.file) {
+//     try {
+//       const webpBuffer = await sharp(req.file.buffer)
+//         .webp({ quality: 80 })
+//         .toBuffer();
+
+//       const result = await avatarStreamUpload(webpBuffer);
+
+
+//       updatedData.avatar = {
+//         url: result.secure_url,
+//         public_id: result.public_id,
+//       };
+
+//       // Delete the previous avatar from Cloudinary if it exists
+//       if (user.avatar && user.avatar.public_id) {
+//         await cloudinary.v2.uploader.destroy(user.avatar.public_id);
+//       }
+//     } catch (error) {
+//       return next(new ErrorHandler("Error updating avatar image.", 500));
+//     }
+//   }
+
+//   // Update user data
+//   Object.assign(user, updatedData);
+//   await user.save();
+
+//   res.status(200).json({
+//     success: true,
+//     message: "Profile updated successfully",
+//     data: user,
+//   });
+// });
+
+
+
+// const Joi = require("joi");
+// const sanitize = require("mongo-sanitize");
+// const User = require("../models/User");
+
+// // JOI Schema for Validation
+// const loginSchema = Joi.object({
+//   email: Joi.string().email().required(),
+//   password: Joi.string().min(6).required(),
+// });
+
+// const loginCredentials = async (req, res) => {
+//   try {
+//     // Validate Input
+//     const { error } = loginSchema.validate(req.body);
+//     if (error) {
+//       return res.status(400).json({ success: false, message: error.details[0].message });
+//     }
+
+//     // Sanitize Input
+//     const email = sanitize(req.body.email);
+//     const password = sanitize(req.body.password);
+
+//     // Find User (Using $eq to prevent injection)
+//     const user = await User.findOne({ email: { $eq: email } }).select("+password");
+
+//     if (!user) {
+//       return res.status(404).json({ success: false, message: "User doesn't exist!" });
+//     }
+
+//     // Check if Account is Locked
+//     if (user.lockUntil && user.lockUntil > Date.now()) {
+//       return res.status(403).json({
+//         success: false,
+//         message: "Account locked due to multiple failed login attempts. Try again after 24 hours.",
+//       });
+//     }
+
+//     // Verify Email if Not Verified
+//     if (!user.verified) {
+//       try {
+//         await sendOTP(user);
+//         return res.status(201).json({ success: true, message: "OTP sent to email, verify account" });
+//       } catch (error) {
+//         return res.status(500).json({ success: false, message: "Internal Server Error!" });
+//       }
+//     }
+
+//     // Check Password
+//     const isPasswordMatched = await user.comparePassword(password);
+
+//     if (!isPasswordMatched) {
+//       user.failedLoginAttempts += 1;
+
+//       // Lock Account if Too Many Failed Attempts
+//       if (user.failedLoginAttempts >= 5) {
+//         user.lockUntil = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 Hours Lock
+//         await user.save();
+//         return res.status(403).json({
+//           success: false,
+//           message: "Too many failed attempts. Account locked for 24 hours.",
+//         });
+//       }
+
+//       await user.save();
+//       return res.status(400).json({ success: false, message: "Invalid credentials!" });
+//     }
+
+//     // Reset Failed Attempts on Success
+//     user.failedLoginAttempts = 0;
+//     user.lockUntil = null;
+//     await user.save();
+
+//     // Generate Token
+//     const token = user.getJwtToken();
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Login successful!",
+//       data: user,
+//       token,
+//     });
+
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ success: false, message: "Internal Server Error!" });
+//   }
+// };
+
+// module.exports = { loginCredentials };

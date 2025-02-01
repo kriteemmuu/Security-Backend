@@ -1,8 +1,10 @@
-import sendEmail from "./emailService.js";
-import { generateOTPCode } from "./generateOTP.js";
+const sendEmail = require('./emailService.js');
+const { generateOTPCode } = require('./generateOTP.js');
+
+
 
 // Helper function to send OTP
-export const sendOTP = async (user) => {
+exports.sendOTP = async (user) => {
     const newOTP = generateOTPCode();
     const otpExpiry = new Date();
     otpExpiry.setSeconds(otpExpiry.getSeconds() + 600);

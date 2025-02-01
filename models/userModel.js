@@ -20,10 +20,10 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      index: true, 
+      index: true,
     },
     phone: {
-      type: String, 
+      type: String,
       required: true,
       unique: true,
       trim: true,
@@ -36,7 +36,7 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
-      default: "", 
+      default: "",
     },
     role: {
       type: String,
@@ -52,21 +52,13 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
 
-    // Password Reset & OTP
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-    otp: {
-      type: String, 
-      select: false,
-    },
+    otp: Number,
     otp_expiry: Date,
-    resetPasswordOtp: {
-      type: String,
-      select: false,
-    },
+    resetPasswordOtp: Number,
     resetPasswordOtpExpiry: Date,
 
-    
     failedLoginAttempts: {
       type: Number,
       default: 0,
@@ -111,7 +103,7 @@ userSchema.methods.isAccountLocked = function () {
 userSchema.methods.incrementFailedLoginAttempts = async function () {
   this.failedLoginAttempts += 1;
   if (this.failedLoginAttempts >= 5) {
-    this.lockUntil = new Date(Date.now() + 24 * 60 * 60 * 1000); 
+    this.lockUntil = new Date(Date.now() + 1 * 60 * 60 * 1000);
   }
   await this.save();
 };
