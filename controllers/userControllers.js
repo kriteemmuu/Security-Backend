@@ -203,7 +203,7 @@ const loginCredentials = async (req, res) => {
     return res.status(403).json({
       success: false,
       message:
-        "Account locked due to multiple failed login attempts. Try again after 24 hours.",
+        "Account locked due to multiple failed login attempts. Try again after one hours.",
     });
   }
 
@@ -229,13 +229,13 @@ const loginCredentials = async (req, res) => {
 
     // Lock account if attempts exceed 5
     if (user.failedLoginAttempts >= 5) {
-      user.lockUntil = new Date(Date.now() + 24 * 60 * 60 * 1000); // for 24 hours 1 day lock ho hai
+      user.lockUntil = new Date(Date.now() + 1 * 60 * 60 * 1000);
       await user.save();
       return res
         .status(403)
         .json({
           success: false,
-          message: "Too many failed attempts. Account locked for 24 hours.",
+          message: "Too many failed attempts. Account locked for One hours.",
         });
     }
 

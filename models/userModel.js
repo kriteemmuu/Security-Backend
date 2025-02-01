@@ -73,7 +73,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// **Hash Password Before Saving**
+// *Hash Password Before Saving*
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
 
@@ -82,24 +82,24 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-// **Generate JWT Token**
+// *Generate JWT Token*
 userSchema.methods.getJwtToken = function () {
   return jwt.sign({ id: this.id }, process.env.JWT_SECRET, {
     expiresIn: "8h",
   });
 };
 
-// **Compare Passwords**
+// *Compare Passwords*
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-// **Check if Account is Locked**
+// *Check if Account is Locked*
 userSchema.methods.isAccountLocked = function () {
   return this.lockUntil && this.lockUntil > Date.now();
 };
 
-// **Increment Failed Login Attempts**
+// *Increment Failed Login Attempts*
 userSchema.methods.incrementFailedLoginAttempts = async function () {
   this.failedLoginAttempts += 1;
   if (this.failedLoginAttempts >= 5) {
@@ -108,7 +108,8 @@ userSchema.methods.incrementFailedLoginAttempts = async function () {
   await this.save();
 };
 
-// **Reset Failed Login Attempts**
+
+// *Reset Failed Login Attempts*
 userSchema.methods.resetFailedLoginAttempts = async function () {
   this.failedLoginAttempts = 0;
   this.lockUntil = null;
